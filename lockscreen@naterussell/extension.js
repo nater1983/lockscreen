@@ -31,13 +31,8 @@ let lockScreenButton;
 
 // LockScreenButton class
 const LockScreenButton = GObject.registerClass(
-  class LockScreenButton extends St.BoxLayout {
-    _init() {
-      super._init({
-        reactive: true,
-        can_focus: true,
-        track_hover: true,
-      });
+class LockScreenButton extends PanelMenu.Button {
+      super._init(0);
 
       let label = new St.Label({
         text: "Lock Screen",
