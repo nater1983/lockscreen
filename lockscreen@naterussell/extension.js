@@ -1,6 +1,8 @@
-// Import necessary modules
-import { St, Clutter } from 'imports.gi';
-import { Main, Util } from 'imports.misc';
+/* exported init */
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import Util from 'gi://Util';
+import Main from 'gi://Main';
 
 let _lockScreenButton = null;
 
