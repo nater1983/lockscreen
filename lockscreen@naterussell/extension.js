@@ -21,8 +21,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-import { Extension, metadata, ShellVersion, util, version } from 'extension';
-import * as Main from 'extension';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 // Main panel menu for the extension
 let lockScreenButton;
