@@ -1,0 +1,7 @@
+{
+    "name": "lockscreen",
+    "description": "Add a lock screen button to the panel",
+    "shell-version": ["45"],
+    "uuid": "lockscreen@naterussell",
+    "esm": true
+}
