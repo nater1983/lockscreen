@@ -16,32 +16,33 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
-import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { Extension, metadata, ShellVersion, util, version } from 'extension';
+import * as Main from 'extension';
 
 // Main panel menu for the extension
 let lockScreenButton;
 
 // LockScreenButton class
 const LockScreenButton = GObject.registerClass(
-  class LockScreenButton extends PanelMenu.Button {
+  class LockScreenButton extends St.BoxLayout {
     _init() {
-      super._init(0);
+      super._init({
+        reactive: true,
+        can_focus: true,
+        track_hover: true,
+      });
 
       let label = new St.Label({
         text: "Lock Screen",
         y_align: Clutter.ActorAlign.CENTER,
       });
 
-      this.actor.add_child(label); // Use this.actor to set the child
+      this.add_child(label);
 
       this.connect('button-press-event', this._lockScreenActivate);
     }
@@ -59,19 +60,21 @@ const LockScreenButton = GObject.registerClass(
 export default class LockScreenPopupExtension extends Extension {
   enable() {
     this._lockScreenButton = new LockScreenButton();
-    Main.panel.addToStatusArea(this.uuid, this._lockScreenButton);
+    Main.panel.addToStatusArea(this.metadata.uuid, this._lockScreenButton);
 
     // Listen for lock and unlock signals
-    global.screen.connect('lock-screen', () => {
-      this._lockScreenButton.actor.hide();
+    this._lockScreenSignalId = global.display.connect('lock-screen', () => {
+      this._lockScreenButton.visible = false;
     });
 
-    global.screen.connect('unlock-screen', () => {
-      this._lockScreenButton.actor.show();
+    this._unlockScreenSignalId = global.display.connect('unlock-screen', () => {
+      this._lockScreenButton.visible = true;
     });
   }
 
   disable() {
+    global.display.disconnect(this._lockScreenSignalId);
+    global.display.disconnect(this._unlockScreenSignalId);
     this._lockScreenButton.destroy();
     this._lockScreenButton = null;
   }
