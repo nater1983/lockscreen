@@ -41,14 +41,8 @@ const LockScreenButton = GObject.registerClass(
         y_align: Clutter.ActorAlign.CENTER,
       });
 
-      this.add_child(label);
+      this.actor.add_child(label); // Use this.actor to set the child
 
-      let icon = new St.Icon({
-        icon_name: 'changes-prevent-symbolic',
-        style_class: 'system-status-icon',
-      });
-
-      this.set_child(icon);
       this.connect('button-press-event', this._lockScreenActivate);
     }
 
@@ -69,11 +63,11 @@ export default class LockScreenPopupExtension extends Extension {
 
     // Listen for lock and unlock signals
     global.screen.connect('lock-screen', () => {
-      this._lockScreenButton.hide();
+      this._lockScreenButton.actor.hide();
     });
 
     global.screen.connect('unlock-screen', () => {
-      this._lockScreenButton.show();
+      this._lockScreenButton.actor.show();
     });
   }
 
