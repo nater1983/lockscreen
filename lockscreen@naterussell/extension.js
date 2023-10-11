@@ -2,10 +2,8 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
-import Main from 'gi://Main';
 
 let _lockScreenButton = null;
-let _lockScreenActive = false;
 
 function init() {
     _lockScreenButton = new St.Bin({
@@ -25,28 +23,26 @@ function init() {
     _lockScreenButton.connect('button-press-event', _lockScreenActivate);
 
     // Listen for lock and unlock signals
-    Main.screenShield.connect('locked', () => {
-        _lockScreenActive = true;
+    global.screen.connect('lock-screen', () => {
         _lockScreenButton.hide();
     });
 
-    Main.screenShield.connect('unlocked', () => {
-        _lockScreenActive = false;
-        if (!_lockScreenButton.visible)
-            _lockScreenButton.show();
+    global.screen.connect('unlock-screen', () => {
+        _lockScreenButton.show();
     });
 }
 
 function _lockScreenActivate() {
-    Gio.Subprocess.new(['xscreensaver-command', '-lock'], Gio.SubprocessFlags.NONE);
+    let [success, pid] = Gio.Subprocess.new(['xscreensaver-command', '-lock'], Gio.SubprocessFlags.NONE);
+    if (success) {
+        pid.wait(null);
+    }
 }
 
 function enable() {
-    Main.panel._rightBox.insert_child_at_index(_lockScreenButton, 0);
-    if (_lockScreenActive)
-        _lockScreenButton.hide();
+    Main.panel.addToStatusArea('lockScreenButton', _lockScreenButton, 0, 'right');
 }
 
 function disable() {
-    Main.panel._rightBox.remove_actor(_lockScreenButton);
+    Main.panel.statusArea['lockScreenButton'].destroy();
 }
