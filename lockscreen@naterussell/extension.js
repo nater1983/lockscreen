@@ -3,9 +3,6 @@ import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-// main.js
-import { St, Clutter, Gio } from 'gi://St';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 let _lockScreenButton;
 
