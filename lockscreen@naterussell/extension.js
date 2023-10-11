@@ -1,52 +1,84 @@
-/* exported init */
-import Gio from 'gi://Gio';
+/* extension.js
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
+
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-let _lockScreenButton;
+// Main panel menu for the extension
+let lockScreenButton;
 
-function init() {
-    _lockScreenButton = new St.Bin({
-        style_class: 'panel-button',
-        reactive: true,
-        can_focus: true,
+// LockScreenButton class
+const LockScreenButton = GObject.registerClass(
+  class LockScreenButton extends PanelMenu.Button {
+    _init() {
+      super._init(0);
+
+      let label = new St.Label({
+        text: "Lock Screen",
         y_align: Clutter.ActorAlign.CENTER,
-        track_hover: true,
-    });
+      });
 
-    let icon = new St.Icon({
+      this.add_child(label);
+
+      let icon = new St.Icon({
         icon_name: 'changes-prevent-symbolic',
         style_class: 'system-status-icon',
-    });
+      });
 
-    _lockScreenButton.set_child(icon);
-    _lockScreenButton.connect('button-press-event', _lockScreenActivate);
+      this.set_child(icon);
+      this.connect('button-press-event', this._lockScreenActivate);
+    }
+
+    _lockScreenActivate() {
+      let [success, pid] = Gio.Subprocess.new(['xscreensaver-command', '-lock'], Gio.SubprocessFlags.NONE);
+      if (success) {
+        pid.wait(null);
+      }
+    }
+  }
+);
+
+// Main extension class
+export default class LockScreenPopupExtension extends Extension {
+  enable() {
+    this._lockScreenButton = new LockScreenButton();
+    Main.panel.addToStatusArea(this.uuid, this._lockScreenButton);
 
     // Listen for lock and unlock signals
     global.screen.connect('lock-screen', () => {
-        _lockScreenButton.hide();
+      this._lockScreenButton.hide();
     });
 
     global.screen.connect('unlock-screen', () => {
-        _lockScreenButton.show();
+      this._lockScreenButton.show();
     });
-}
+  }
 
-function _lockScreenActivate() {
-    let [success, pid] = Gio.Subprocess.new(['xscreensaver-command', '-lock'], Gio.SubprocessFlags.NONE);
-    if (success) {
-        pid.wait(null);
-    }
+  disable() {
+    this._lockScreenButton.destroy();
+    this._lockScreenButton = null;
+  }
 }
-
-function enable() {
-    Main.panel.addToStatusArea('lockScreenButton', _lockScreenButton, 0, 'right');
-}
-
-function disable() {
-    Main.panel.statusArea['lockScreenButton'].destroy();
-}
-
-// Export your functions
-export { init, enable, disable };
